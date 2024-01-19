@@ -1,6 +1,8 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.SwerveSubsystem;
@@ -28,6 +30,8 @@ public class SwerveDriveCmd extends Command {
 
 		if (this.controller.getAButton()) {
 			this.swerveSubsystem.resetGyro();
+		} else if (this.controller.getYButton()) {
+			this.swerveSubsystem.resetPose(new Pose2d(2, 7, new Rotation2d()));
 		}
 
 		this.swerveSubsystem.driveSwerve(xSpeed, ySpeed, rotation, Constants.gyroField);

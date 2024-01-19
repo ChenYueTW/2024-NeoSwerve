@@ -3,7 +3,6 @@ package frc.robot;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.commands.SwerveDriveCmd;
 import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.Auto.PathPlannerCmd;
 
 public class RobotContainer {
 	private final GamepadJoystick joystick = new GamepadJoystick(GamepadJoystick.CONTROLLER_PORT);
@@ -15,6 +14,6 @@ public class RobotContainer {
 	}
 
 	public Command getAutonomousCommand() {
-		return new PathPlannerCmd(this.swerveSubsystem);
+		return this.swerveSubsystem.followPathCommand("Swerve");
 	}
 }

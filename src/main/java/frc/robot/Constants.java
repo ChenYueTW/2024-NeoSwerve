@@ -10,12 +10,16 @@ public final class Constants {
 		public static final double WHEEL_RADIUS = 0.0508; // 輪子半徑
 		
 		public static final double PHYSICAL_MAX_SPEED_METERS_PER_SECOND = 3.0; // 最大速度m/s
-		public static final double PHYSICAL_MAX_ACCELERATION_METERS_PER_SECONE = 3.0; // 最大加速度m/s^2
+		public static final double PHYSICAL_MAX_ACCELERATION_METERS_PER_SECONE = 1.0; // 最大加速度m/s^2
 		public static final double DRIVE_GEAR_RATIO = 57.0 / 7.0; // 齒輪比
-		public static final int MAX_VOLTAGE = 12;
+		public static final int MAX_VOLTAGE = 20;
 
-		public static final double DRIVE_VELOCITY_CONVERSION_FACTOR = WHEEL_RADIUS / DRIVE_GEAR_RATIO * Math.PI;
-		public static final double DRIVE_POSITION_CONVERSION_FACTOR = WHEEL_RADIUS / DRIVE_GEAR_RATIO / 60 * Math.PI;
+		public static final double DRIVE_VELOCITY_CONVERSION_FACTOR = WHEEL_RADIUS * 2 / DRIVE_GEAR_RATIO * Math.PI / 60;
+		public static final double DRIVE_POSITION_CONVERSION_FACTOR = WHEEL_RADIUS * 2 / DRIVE_GEAR_RATIO * Math.PI;
+	}
+
+	public static final class AutoConstants {
+		public static final double PHYSICAL_MAX_SPEED_METERS_PER_SECOND = 1.0;
 	}
 	
 	public static final class MotorReverse {
@@ -30,11 +34,18 @@ public final class Constants {
 		public static final boolean BACK_RIGHT_TURN = true;
 	}
 
+	public static final class DriveEncoderReverse {
+		public static final boolean FRONT_LEFT = true;
+		public static final boolean FRONT_RIGHT = true;
+		public static final boolean BACK_LEFT = true;
+		public static final boolean BACK_RIGHT = true;
+	}
+
 	public static final class EncoderOffset {
-		public static final double FRONT_LEFT = 122.34375;
-		public static final double FRONT_RIGHT = 89.208984375;
-		public static final double BACK_LEFT = 271.7578125;
-		public static final double BACK_RIGHT = 211.640625;
+		public static final double FRONT_LEFT = 121.376953125;
+		public static final double FRONT_RIGHT = 90.17578125;
+		public static final double BACK_LEFT = -87.890625;
+		public static final double BACK_RIGHT = -148.447265625;
 	}
 
 	public static final SwerveDriveKinematics swerveDriveKinematics = new SwerveDriveKinematics(

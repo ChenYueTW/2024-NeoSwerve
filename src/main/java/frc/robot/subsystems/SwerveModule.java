@@ -27,10 +27,11 @@ public class SwerveModule implements IDashboardProvider{
     private double turnOutput;
 
     private final double turningEncoderOffset;
+    private final boolean driveEncoderReversed;
 
     public SwerveModule(
         int driveMotorPort, int turnMotorPort, int turnEncoderPort,
-        boolean driveMotorReverse, boolean turnMotorReverse,
+        boolean driveMotorReverse, boolean turnMotorReverse, boolean driveEncoderReverse,
         double turnEncoderOffset, String motorName
     ){
         this.registerDashboard();
@@ -41,32 +42,43 @@ public class SwerveModule implements IDashboardProvider{
         this.driveEncoder = this.driveMotor.getEncoder();
         this.turnEncoder = new CANcoder(turnEncoderPort);
 
+        this.driveEncoderReversed = driveEncoderReverse;
         this.driveEncoder.setPositionConversionFactor(SwerveConstants.DRIVE_POSITION_CONVERSION_FACTOR);
         this.driveEncoder.setVelocityConversionFactor(SwerveConstants.DRIVE_VELOCITY_CONVERSION_FACTOR);
 
-        this.turnPidController = new PIDController(0.01015, 0.0001, 0);
+        this.turnPidController = new PIDController(0.0075, 0.00003, 0.00001);
         this.turnPidController.enableContinuousInput(-180, 180);
 
         this.motorName = motorName;
         this.turningEncoderOffset = turnEncoderOffset;
     }
 
+    public double getDriveEncoderPosition() {
+        return this.driveEncoder.getPosition() * (this.driveEncoderReversed ? 1 : -1);
+    }
+
+    public double getDriveEncoderVelocity() {
+        return this.driveEncoder.getVelocity() * (this.driveEncoderReversed ? 1 : -1);
+    }
+
     public SwerveModuleState getState() {
         return new SwerveModuleState(
-            this.driveEncoder.getVelocity(),
+            this.getDriveEncoderVelocity(),
             Rotation2d.fromDegrees(this.getTurningEncoderPosition())
         );
     }
 
     public SwerveModulePosition getPosition() {
         return new SwerveModulePosition(
-            this.driveEncoder.getPosition(),
+            this.getDriveEncoderPosition(),
             Rotation2d.fromDegrees(this.getTurningEncoderPosition())
         );
     }
 
     public double getTurningEncoderPosition() {
-        return Units.rotationsToDegrees(this.turnEncoder.getAbsolutePosition().getValue()) - this.turningEncoderOffset;
+        double value = Units.rotationsToDegrees(this.turnEncoder.getAbsolutePosition().getValue()) - this.turningEncoderOffset;
+        value %= 360.0;
+        return value > 180 ? value - 360 : value;
     }
 
     public void setDesiredState(SwerveModuleState desiredState) {
@@ -75,6 +87,7 @@ public class SwerveModule implements IDashboardProvider{
             return;
         }
         SwerveModuleState state = SwerveModuleState.optimize(desiredState, this.getState().angle);
+        SmartDashboard.putNumber("MeterPerS", state.speedMetersPerSecond);
 
         this.driveOutput = state.speedMetersPerSecond / SwerveConstants.PHYSICAL_MAX_SPEED_METERS_PER_SECOND;
         this.turnOutput = this.turnPidController.calculate(this.getState().angle.getDegrees(), state.angle.getDegrees());
@@ -100,9 +113,9 @@ public class SwerveModule implements IDashboardProvider{
     @Override
     public void putDashboard() {
         // SmartDashboard.putNumber(this.motorName + " DrivePosition", this.driveEncoder.getPosition());
-        // SmartDashboard.putNumber(this.motorName + " DriveVelocity", this.driveEncoder.getVelocity());
+        // SmartDashboard.putNumber(this.motorName + " DriveVelocity", this.getDriveEncoderVelocity());
         SmartDashboard.putNumber(this.motorName + " TurnPosition", this.getTurningEncoderPosition());
-        SmartDashboard.putNumber(this.motorName + " TurnVelocity", this.turnEncoder.getVelocity().getValue());
+        // SmartDashboard.putNumber(this.motorName + " TurnVelocity", this.turnEncoder.getVelocity().getValue());
         SmartDashboard.putNumber(this.motorName + " DriveMotor", this.driveOutput);
         SmartDashboard.putNumber(this.motorName + " TurnMotor", this.turnOutput);
     }
