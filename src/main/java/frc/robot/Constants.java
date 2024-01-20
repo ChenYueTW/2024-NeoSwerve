@@ -56,12 +56,12 @@ public final class Constants {
     );
 
 	public static final class LimelightConstants {
-		public static final double MOUNT_ANGLE_DEG = 0.0;
-		public static final double LENS_HEIGHT_METERS = 0.42; // distance from the center of the Limelight lens to the floor
-		public static final double GOAL_HEIGHT_METERS = 0.74; // distance from the target to the floor
+		public static final double MOUNT_ANGLE_DEG = -30.0;
+		public static final double LENS_HEIGHT_METERS = 0.52; // distance from the center of the Limelight lens to the floor
+		public static final double GOAL_HEIGHT_METERS = 0.0; // distance from the target to the floor
 		public static final double HORIZONTAL_OFFSET_METERS = 0;
-		public static final double VERTICAL_MAX_SPEED = 1.3;
-		public static final double HORIZONTAL_MAX_SPEED = 2.6;
+		public static final double VERTICAL_MAX_SPEED = 1.8;
+		public static final double HORIZONTAL_MAX_SPEED = 1.5;
 		public static final boolean gyroField = false;
 	}
 

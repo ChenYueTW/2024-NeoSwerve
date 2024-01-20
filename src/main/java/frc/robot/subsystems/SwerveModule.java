@@ -87,7 +87,6 @@ public class SwerveModule implements IDashboardProvider{
             return;
         }
         SwerveModuleState state = SwerveModuleState.optimize(desiredState, this.getState().angle);
-        SmartDashboard.putNumber("MeterPerS", state.speedMetersPerSecond);
 
         this.driveOutput = state.speedMetersPerSecond / SwerveConstants.PHYSICAL_MAX_SPEED_METERS_PER_SECOND;
         this.turnOutput = this.turnPidController.calculate(this.getState().angle.getDegrees(), state.angle.getDegrees());

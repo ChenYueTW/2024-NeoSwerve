@@ -16,11 +16,9 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.DeviceId.Neo;
-import frc.robot.lib.IDashboardProvider;
 import frc.robot.DeviceId.Encoder;
 import frc.robot.Constants.MotorReverse;
 import frc.robot.Constants.SwerveConstants;
@@ -29,7 +27,7 @@ import frc.robot.Constants.DriveEncoderReverse;
 import frc.robot.Constants.EncoderOffset;
 import frc.robot.Constants;
 
-public class SwerveSubsystem extends SubsystemBase implements IDashboardProvider {
+public class SwerveSubsystem extends SubsystemBase {
     private final SwerveModule frontLeft;
     private final SwerveModule frontRight;
     private final SwerveModule backLeft;
@@ -38,7 +36,6 @@ public class SwerveSubsystem extends SubsystemBase implements IDashboardProvider
     private final SwerveDriveOdometry odometry;
 
     public SwerveSubsystem() {
-        this.registerDashboard();
         this.frontLeft = new SwerveModule(
             Neo.frontLeftDrive,
             Neo.frontLeftTurn,
@@ -162,12 +159,6 @@ public class SwerveSubsystem extends SubsystemBase implements IDashboardProvider
         this.frontRight.stop();
         this.backLeft.stop();
         this.backRight.stop();
-    }
-
-    @Override
-    public void putDashboard() {
-        SmartDashboard.putString("Robot Pose", this.getPose().toString());
-        SmartDashboard.putString("Robot Speed", this.getSpeeds().toString());
     }
 
     public Command followPathCommand(String pathName) {
