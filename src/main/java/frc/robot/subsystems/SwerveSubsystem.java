@@ -1,24 +1,28 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
-import com.pathplanner.lib.commands.FollowPathHolonomic;
-import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj.SerialPort;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.DeviceId.Neo;
+import frc.robot.lib.IDashboardProvider;
 import frc.robot.DeviceId.Encoder;
 import frc.robot.Constants.MotorReverse;
 import frc.robot.Constants.SwerveConstants;
@@ -27,15 +31,20 @@ import frc.robot.Constants.DriveEncoderReverse;
 import frc.robot.Constants.EncoderOffset;
 import frc.robot.Constants;
 
-public class SwerveSubsystem extends SubsystemBase {
+public class SwerveSubsystem extends SubsystemBase implements IDashboardProvider {
     private final SwerveModule frontLeft;
     private final SwerveModule frontRight;
     private final SwerveModule backLeft;
     private final SwerveModule backRight;
     private final AHRS gyro;
     private final SwerveDriveOdometry odometry;
+    private final Pose3d poseA = new Pose3d();
+    private final Pose3d poseB = new Pose3d();
+    StructPublisher<Pose3d> publisher = NetworkTableInstance.getDefault().getStructTopic("My pose", Pose3d.struct).publish();
+    StructArrayPublisher<Pose3d> arrayPublisher = NetworkTableInstance.getDefault().getStructArrayTopic("My pose array", Pose3d.struct).publish();
 
     public SwerveSubsystem() {
+        this.registerDashboard();
         this.frontLeft = new SwerveModule(
             Neo.frontLeftDrive,
             Neo.frontLeftTurn,
@@ -76,7 +85,26 @@ public class SwerveSubsystem extends SubsystemBase {
             EncoderOffset.BACK_RIGHT,
             "backRight"
         );
-        this.gyro = new AHRS(SPI.Port.kMXP);
+        AutoBuilder.configureHolonomic(
+            this::getPose,
+            this::resetPose,
+            this::getSpeeds, 
+            this::autoDriveSwerve,
+            new HolonomicPathFollowerConfig(
+                AutoConstants.PHYSICAL_MAX_SPEED_METERS_PER_SECOND,
+                new Translation2d(SwerveConstants.TRACK_LENGTH / 2, SwerveConstants.TRACK_WIDTH / 2).getNorm(),
+                new ReplanningConfig(false, false)
+            ),
+            () -> {
+                var alliance = DriverStation.getAlliance();
+                if (alliance.isPresent()) {
+                    return alliance.get() == DriverStation.Alliance.Red;
+                }
+                return false;
+            },
+            this
+        );
+        this.gyro = new AHRS(SerialPort.Port.kUSB);
         this.odometry = new SwerveDriveOdometry(
             Constants.swerveDriveKinematics, this.gyro.getRotation2d(), this.getModulePosition()
         );
@@ -87,6 +115,8 @@ public class SwerveSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         this.odometry.update(this.gyro.getRotation2d(), getModulePosition());
+        this.publisher.set(this.poseA);
+        this.arrayPublisher.set(new Pose3d[] {this.poseA, this.poseB});
     }
 
     public void resetGyro() {
@@ -161,29 +191,8 @@ public class SwerveSubsystem extends SubsystemBase {
         this.backRight.stop();
     }
 
-    public Command followPathCommand(String pathName) {
-        PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
-
-        return new FollowPathHolonomic(
-            path,
-            this::getPose,
-            this::getSpeeds,
-            this::autoDriveSwerve,
-            new HolonomicPathFollowerConfig(
-                new PIDConstants(5.0),
-                new PIDConstants(5.0),
-                AutoConstants.PHYSICAL_MAX_SPEED_METERS_PER_SECOND,
-                new Translation2d(SwerveConstants.TRACK_LENGTH / 2, SwerveConstants.TRACK_WIDTH / 2).getNorm(),
-                new ReplanningConfig()
-            ),
-            () -> {
-                var alliance = DriverStation.getAlliance();
-                if (alliance.isPresent()) {
-                    return alliance.get() == DriverStation.Alliance.Red;
-                }
-                return false;
-            },
-            this
-        );
+    @Override
+    public void putDashboard() {
+        SmartDashboard.putNumber("Pitch", this.gyro.getYaw());
     }
 }

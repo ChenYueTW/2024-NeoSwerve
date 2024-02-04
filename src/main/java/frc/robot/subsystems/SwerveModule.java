@@ -46,7 +46,7 @@ public class SwerveModule implements IDashboardProvider{
         this.driveEncoder.setPositionConversionFactor(SwerveConstants.DRIVE_POSITION_CONVERSION_FACTOR);
         this.driveEncoder.setVelocityConversionFactor(SwerveConstants.DRIVE_VELOCITY_CONVERSION_FACTOR);
 
-        this.turnPidController = new PIDController(0.0075, 0.00003, 0.00001);
+        this.turnPidController = new PIDController(0.0065, 0.00005, 0.0);
         this.turnPidController.enableContinuousInput(-180, 180);
 
         this.motorName = motorName;
@@ -59,6 +59,10 @@ public class SwerveModule implements IDashboardProvider{
 
     public double getDriveEncoderVelocity() {
         return this.driveEncoder.getVelocity() * (this.driveEncoderReversed ? 1 : -1);
+    }
+
+    public double getLinear() {
+        return SwerveConstants.WHEEL_RADIUS * 2 * Math.PI * this.driveEncoder.getVelocity() / 60;
     }
 
     public SwerveModuleState getState() {
@@ -113,10 +117,9 @@ public class SwerveModule implements IDashboardProvider{
     public void putDashboard() {
         // SmartDashboard.putNumber(this.motorName + " DrivePosition", this.driveEncoder.getPosition());
         // SmartDashboard.putNumber(this.motorName + " DriveVelocity", this.getDriveEncoderVelocity());
+        SmartDashboard.putNumber(this.motorName + " DriveLinear", this.getLinear());
         SmartDashboard.putNumber(this.motorName + " TurnPosition", this.getTurningEncoderPosition());
         // SmartDashboard.putNumber(this.motorName + " TurnVelocity", this.turnEncoder.getVelocity().getValue());
-        SmartDashboard.putNumber(this.motorName + " DriveMotor", this.driveOutput);
-        SmartDashboard.putNumber(this.motorName + " TurnMotor", this.turnOutput);
     }
 
     public void stop() {
